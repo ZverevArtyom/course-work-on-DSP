@@ -21,7 +21,7 @@ void MainWindow::makePlot()
     // С помощью метода open() открываем файл в режиме чтения
     if (!file.open(QIODevice::ReadOnly)) {
        qWarning("Cannot open file for reading"); // если файл не найден, то выводим предупреждение и завершаем выполнение программы
-    //   return 1;
+       return 1;
     }
     // Создаем входящий поток, из которого будут считываться данные, и связываем его с нашим файлом
     QTextStream in(&file);
