@@ -70,16 +70,31 @@ void low_pass_parabolic_filter(vector<W_type> &InOut, int32_t pass_frequency, in
 {	
     ofstream outf("window_for_low_pass_parabolic_filter.txt");
 
-    for (int32_t i = pass_frequency + 1; i < stop_frequency; i++)
+    for (int32_t i = pass_frequency + 1; i < stop_frequency; i++) {
         InOut[i].r = InOut[i].r * (1 - (pow(i - pass_frequency, 2) / pow(stop_frequency - pass_frequency, 2)));
+        InOut[i].i = InOut[i].i * (1 - (pow(i - pass_frequency, 2) / pow(stop_frequency - pass_frequency, 2)));
+    }
+    for (int32_t i = stop_frequency; i <= InOut.size() / 2; i++) {
+        InOut[i].r = 0;
+        InOut[i].i = 0;
+    }
+    for (int32_t i = InOut.size() - pass_frequency - 1; i > InOut.size() / 2; i--) { //отражаем результат на отрицательную часть спектра
+        InOut[i].r = InOut[InOut.size() - i].r;
+        InOut[i].i = InOut[InOut.size() - i].i;
+    }
+    for (int32_t i = pass_frequency + 1; i < stop_frequency - 1; i++)
+        outf << InOut[i].r << endl;
+    outf << InOut[stop_frequency - 1].r;
+}
+
+void zero_filter(vector<W_type> &InOut, int32_t pass_frequency, int32_t stop_frequency)
+{
+    for (int32_t i = pass_frequency + 1; i < stop_frequency; i++)
+        InOut[i].r = InOut[i].r * 0;
     for (int32_t i = stop_frequency; i <= InOut.size() / 2; i++)
         InOut[i].r = 0;	
     for (int32_t i = InOut.size() - pass_frequency - 1; i > InOut.size() / 2; i--) //отражаем результат на отрицательную часть спектра
         InOut[i].r = InOut[InOut.size() - i].r;
-
-    for (int32_t i = pass_frequency + 1; i < stop_frequency - 1; i++)
-        outf << InOut[i].r << endl;
-    outf << InOut[stop_frequency - 1].r;
 }
 
 int main()
@@ -87,20 +102,20 @@ int main()
     string strInput;
     vector<W_type> InOut;
 
-    ifstream inf("sound_in_the_time_domain.txt");
+    ifstream inf("sound_in_the_time_domain.txt"); //ifstream inf("the_result_of_the_reverse_FFT.txt"); 
     while (getline(inf, strInput))
         InOut.push_back(W_type(stoi(strInput), 0));
-    inf.close();
+    inf.close(); 
 
     fft(InOut, InOut.size());
 
-    low_pass_parabolic_filter(InOut, 10, 15);
+    low_pass_parabolic_filter(InOut, 10, 20);
     
     ofstream outf("sound_in_the_frequency_domain.txt");
     for (int32_t i = 0; i < InOut.size() - 1; i++) 
         outf << InOut[i].r << endl; 	
     outf << InOut[InOut.size() - 1].r;
-    outf.close();
+    outf.close(); 
 
     reverse_fft(InOut, InOut.size());
 
